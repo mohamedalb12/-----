@@ -512,3 +512,61 @@ def show_toast(root, text: str, icon: str = "✨", duration: int = 3500, color=N
     toast.lift()
     root.after(duration, lambda: toast.winfo_exists() and toast.destroy())
     return toast
+
+
+# --------------------------------------------------------------------------- #
+#  رسم بياني حي (لمراقب الأداء)
+# --------------------------------------------------------------------------- #
+
+
+def blend(c1: str, c2: str, t: float) -> str:
+    """مزج لونين (t=0 → c1، t=1 → c2)."""
+    try:
+        a = [int(c1.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
+        b = [int(c2.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
+    except ValueError:
+        return c2
+    return "#" + "".join(f"{int(a[i] + (b[i] - a[i]) * t):02x}" for i in range(3))
+
+
+class Sparkline(_ThemedCanvas):
+    """منحنى متحرك لآخر N قيمة مع تعبئة ناعمة أسفله."""
+
+    def __init__(self, master, color: str, height: int = 70, points: int = 60,
+                 max_value: Optional[float] = 100.0, second_color: Optional[str] = None):
+        super().__init__(master, height=height)
+        self.color = color
+        self.second_color = second_color
+        self.points = points
+        self.max_value = max_value
+        self.values: List[float] = []
+        self.values2: List[float] = []
+        self.bind("<Configure>", lambda _e: self.redraw())
+
+    def push(self, value: float, value2: Optional[float] = None):
+        self.values = (self.values + [value])[-self.points:]
+        if value2 is not None:
+            self.values2 = (self.values2 + [value2])[-self.points:]
+        self.redraw()
+
+    def _coords(self, values, top):
+        w, h = max(self.winfo_width(), 10), max(self.winfo_height(), 10)
+        step = w / max(self.points - 1, 1)
+        x0 = w - step * (len(values) - 1)
+        return [(x0 + i * step, h - 3 - (h - 8) * min(v / top, 1.0)) for i, v in enumerate(values)]
+
+    def redraw(self):
+        self.delete("all")
+        h = max(self.winfo_height(), 10)
+        w = max(self.winfo_width(), 10)
+        bg = effective_bg(self.master)
+        for frac in (0.33, 0.66):
+            self.create_line(0, h * frac, w, h * frac, fill=T.resolve(T.TRACK), dash=(2, 4))
+        top = self.max_value or max(self.values + self.values2 + [1.0]) * 1.15
+        for values, color in ((self.values2, self.second_color), (self.values, self.color)):
+            if len(values) < 2 or not color:
+                continue
+            pts = self._coords(values, top)
+            poly = [(pts[0][0], h)] + pts + [(pts[-1][0], h)]
+            self.create_polygon(*[c for p in poly for c in p], fill=blend(bg, color, 0.22), outline="")
+            self.create_line(*[c for p in pts for c in p], fill=color, width=2, smooth=True)

@@ -75,7 +75,7 @@ class DashboardPage(Page):
         self.scan_btn = GradientButton(action, "⚡  فحص ذكي", self.start_scan, width=250, height=64,
                                        font_size=19)
         self.scan_btn.pack()
-        self.caption = ctk.CTkLabel(action, text="مهملات النظام + الملفات الكبيرة + بقايا التطبيقات",
+        self.caption = ctk.CTkLabel(action, text="تنظيف + حماية + سرعة في خطوة واحدة",
                                     font=T.font(12), text_color=T.MUTED)
         self.caption.pack(pady=(8, 0))
         self.progress = ProgressPanel(hero, on_cancel=self.cancel_job)
@@ -85,7 +85,7 @@ class DashboardPage(Page):
         # ---------------- بطاقات النتائج
         cards = ctk.CTkFrame(self, fg_color="transparent")
         cards.grid(row=3, column=0, sticky="ew", pady=(18, 0))
-        for i in range(4):
+        for i in range(3):
             cards.grid_columnconfigure(i, weight=1, uniform="cards")
         self.card_junk = StatCard(cards, "🧹", "مهملات النظام", "#7c6cff", "مراجعة التفاصيل",
                                   lambda: app.show_page("junk"))
@@ -95,8 +95,16 @@ class DashboardPage(Page):
                                    lambda: app.show_page("large"))
         self.card_apps = StatCard(cards, "🧩", "بقايا التطبيقات", "#f59e0b", "مراجعة البقايا",
                                   lambda: app.show_page("apps"))
-        for i, card in enumerate((self.card_junk, self.card_trash, self.card_large, self.card_apps)):
-            card.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 8, 0 if i == 3 else 8))
+        self.card_security = StatCard(cards, "🛡", "الحماية", "#ef4444", "عرض التفاصيل",
+                                      lambda: app.show_page("security"))
+        self.card_speed = StatCard(cards, "🚀", "السرعة", "#3b82f6", "تحسين السرعة",
+                                   lambda: app.show_page("optimization"))
+        all_cards = (self.card_junk, self.card_trash, self.card_large, self.card_apps,
+                     self.card_security, self.card_speed)
+        for i, card in enumerate(all_cards):
+            col = i % 3
+            card.grid(row=i // 3, column=col, sticky="nsew", pady=(0, 12),
+                      padx=(0 if col == 0 else 6, 0 if col == 2 else 6))
             card.set("—", "اضغط «فحص ذكي» للبدء", enabled=False)
 
         # ---------------- التنظيف + الإحصاءات
@@ -185,6 +193,20 @@ class DashboardPage(Page):
         self.card_large.set(human_size(r.large_size),
                             f"{len(r.large):,} ملف أكبر من {self.app.settings.smart_large_mb} MB")
         self.card_apps.set(human_size(r.orphans_size), f"{len(r.orphans):,} عنصر من تطبيقات محذوفة")
+        issues = len(r.threats) + len(r.protection_issues)
+        if issues:
+            parts = []
+            if r.threats:
+                parts.append(f"{len(r.threats)} عنصر مشبوه")
+            if r.protection_issues:
+                parts.append("غير مفعّل: " + "، ".join(r.protection_issues))
+            self.card_security.set(f"⚠️ {issues} تنبيه", " — ".join(parts))
+        else:
+            self.card_security.set("✅ آمن", "لا توجد تهديدات وإعدادات الأمان مفعّلة")
+        speed = f"{r.startup_running} عنصر يعمل في الخلفية"
+        if r.startup_broken:
+            speed += f" • {r.startup_broken} بقايا"
+        self.card_speed.set(f"الذاكرة {r.mem_percent:.0f}%", speed)
         self.clean_btn.configure_button(
             text=f"🧹  تنظيف {human_size(self._recommended_size())}",
             enabled=self._recommended_size() > 0)

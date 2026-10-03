@@ -11,6 +11,7 @@ junk.py — اكتشاف الملفات المهملة.
 
 from __future__ import annotations
 
+import glob
 import os
 import re
 import sys
@@ -47,6 +48,8 @@ class JunkTarget:
     aggregate: bool = True
     # شرط اختياري على الملف (يُستخدم فقط مع aggregate=False)
     predicate: Optional[Callable[[str, float], bool]] = None
+    # False = لا يُفحص في الفحص الذكي (مثلاً لأن macOS يطلب إذناً عند الوصول إليه)
+    in_smart: bool = True
 
 
 def junk_targets() -> List[JunkTarget]:
@@ -68,7 +71,14 @@ def junk_targets() -> List[JunkTarget]:
             JunkTarget(j(h, "Library/Developer/Xcode/watchOS DeviceSupport"), Category.DEV),
             JunkTarget(j(h, "Library/Developer/CoreSimulator/Caches"), Category.DEV),
             JunkTarget(j(h, "Library/Application Support/MobileSync/Backup"), Category.IOS_BACKUP),
+            JunkTarget(j(h, "Library/Containers/com.apple.mail/Data/Library/Mail Downloads"),
+                       Category.MAIL, in_smart=False),
+            JunkTarget(j(h, "Library/Mail Downloads"), Category.MAIL),
         ]
+        # سلال المحذوفات في الأقراص الخارجية
+        uid = str(os.getuid())
+        for trashes in glob.glob("/Volumes/*/.Trashes"):
+            t.append(JunkTarget(os.path.join(trashes, uid), Category.TRASH))
     else:
         t += [
             JunkTarget(j(h, ".cache"), Category.CACHE),
@@ -84,11 +94,11 @@ def junk_targets() -> List[JunkTarget]:
     return t
 
 
-def scan_junk(ctx: JobContext = NULL_CONTEXT,
-              targets: Optional[List[JunkTarget]] = None) -> Dict[Category, List[FileItem]]:
+def scan_junk(ctx: JobContext = NULL_CONTEXT, targets: Optional[List[JunkTarget]] = None,
+              smart: bool = False) -> Dict[Category, List[FileItem]]:
     """الفحص الذكي لأماكن المهملات المعروفة."""
     targets = targets if targets is not None else junk_targets()
-    targets = [tg for tg in targets if os.path.isdir(tg.path)]
+    targets = [tg for tg in targets if os.path.isdir(tg.path) and (tg.in_smart or not smart)]
     result: Dict[Category, List[FileItem]] = {c: [] for c in JUNK_CATEGORIES}
     seen = set()
     found_total = 0

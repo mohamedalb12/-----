@@ -68,13 +68,15 @@ class CheckTree(ctk.CTkFrame):
     def __init__(self, master, columns: Sequence[Tuple[str, str, int, str]] = DEFAULT_COLUMNS,
                  on_change: Optional[Callable[[], None]] = None,
                  on_select: Optional[Callable[[Optional[FileItem]], None]] = None,
-                 actions=None, name_title: str = "الاسم"):
+                 actions=None, name_title: str = "الاسم",
+                 info: Optional[Callable[[FileItem], str]] = None):
         super().__init__(master, fg_color=T.CARD, corner_radius=16, border_width=1,
                          border_color=T.BORDER)
         self.on_change = on_change
         self.on_select = on_select
         self.actions = actions          # كائن فيه open/reveal/quick_look/delete
         self.columns = columns
+        self.info = info or (lambda item: item.note)
         self.groups: Dict[str, Group] = {}
         self.group_order: List[str] = []
         self.checked: Set[str] = set()
@@ -173,7 +175,7 @@ class CheckTree(ctk.CTkFrame):
             elif col == "path":
                 vals.append(short_path(item.path))
             elif col == "info":
-                vals.append(item.note)
+                vals.append(self.info(item))
             else:
                 vals.append("")
         return vals
@@ -255,6 +257,13 @@ class CheckTree(ctk.CTkFrame):
     def _check_selection(self, value: bool):
         for iid in self.tree.selection():
             self._toggle(iid, value)
+
+    def set_checked_paths(self, paths: Set[str]):
+        """تحديد عناصر بعينها (بدلاً من تحديد مجموعات كاملة)."""
+        self.checked = set(paths)
+        for key in self.group_order:
+            self._refresh_group(key)
+        self._changed()
 
     def set_all(self, value: bool):
         for key in self.group_order:

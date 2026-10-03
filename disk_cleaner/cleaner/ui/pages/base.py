@@ -20,6 +20,9 @@ class Page(ctk.CTkFrame):
     def on_show(self) -> None:
         """تُستدعى عند فتح الصفحة."""
 
+    def on_hide(self) -> None:
+        """تُستدعى عند مغادرة الصفحة."""
+
     def on_smart_result(self, result) -> None:
         """تُستدعى عند انتهاء الفحص الذكي من الصفحة الرئيسية."""
 

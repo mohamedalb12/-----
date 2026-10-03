@@ -119,7 +119,7 @@ class App(ctk.CTk):
         side.grid_columnconfigure(0, weight=1)
 
         brand = ctk.CTkFrame(side, fg_color="transparent")
-        brand.grid(row=0, column=0, sticky="ew", padx=18, pady=(26, 22))
+        brand.grid(row=0, column=0, sticky="ew", padx=18, pady=(24, 10))
         if self.logo:
             ctk.CTkLabel(brand, text="", image=self.logo).pack(side="left", padx=(0, 10))
         names = ctk.CTkFrame(brand, fg_color="transparent")
@@ -128,19 +128,31 @@ class App(ctk.CTk):
         ctk.CTkLabel(names, text=f"{APP_NAME_AR} • v{__version__}", font=T.font(11),
                      text_color=T.MUTED, anchor="w").pack(anchor="w")
 
-        for row, (key, icon, label, _cls) in enumerate(PAGES, start=1):
-            btn = ctk.CTkButton(side, text=f"{icon}   {label}", anchor="w", height=42,
-                                corner_radius=12, font=T.font(14), fg_color="transparent",
+        # قائمة التنقل (قابلة للتمرير) مقسّمة إلى أقسام مثل CleanMyMac
+        nav = ctk.CTkScrollableFrame(side, fg_color="transparent", scrollbar_button_color=T.SIDEBAR,
+                                     scrollbar_button_hover_color=T.TRACK)
+        nav.grid(row=1, column=0, sticky="nsew", padx=(6, 0))
+        nav.grid_columnconfigure(0, weight=1)
+        side.grid_rowconfigure(1, weight=1)
+        row, section = 0, None
+        for key, icon, label, _cls, sec in PAGES:
+            if sec != section:
+                section = sec
+                if sec:
+                    ctk.CTkLabel(nav, text=sec, font=T.font(11, "bold"), text_color=T.FAINT,
+                                 anchor="w").grid(row=row, column=0, sticky="ew", padx=14, pady=(12, 2))
+                    row += 1
+            btn = ctk.CTkButton(nav, text=f"{icon}   {label}", anchor="w", height=36,
+                                corner_radius=10, font=T.font(14), fg_color="transparent",
                                 hover_color=T.HOVER, text_color=T.TEXT,
                                 command=lambda k=key: self.show_page(k))
-            btn.grid(row=row, column=0, sticky="ew", padx=14, pady=2)
+            btn.grid(row=row, column=0, sticky="ew", padx=(6, 8), pady=1)
             self.nav_buttons[key] = btn
-
-        side.grid_rowconfigure(len(PAGES) + 1, weight=1)
+            row += 1
 
         disk = ctk.CTkFrame(side, fg_color=T.CARD, corner_radius=16, border_width=1,
                             border_color=T.BORDER)
-        disk.grid(row=len(PAGES) + 2, column=0, sticky="ew", padx=14, pady=(0, 18))
+        disk.grid(row=2, column=0, sticky="ew", padx=14, pady=(8, 18))
         ctk.CTkLabel(disk, text="💽  قرص التشغيل", font=T.font(13, "bold"), anchor="w").pack(
             fill="x", padx=14, pady=(12, 4))
         self.disk_bar = ctk.CTkProgressBar(disk, height=8)
@@ -151,8 +163,10 @@ class App(ctk.CTk):
     def show_page(self, key: str):
         from .pages import PAGES
 
+        if self.current and self.current != key and self.current in self.pages:
+            self.pages[self.current].on_hide()
         if key not in self.pages:
-            cls = next(c for k, _i, _l, c in PAGES if k == key)
+            cls = next(c for k, _i, _l, c, _s in PAGES if k == key)
             page = cls(self.content, self)
             page.grid(row=0, column=0, sticky="nsew")
             self.pages[key] = page

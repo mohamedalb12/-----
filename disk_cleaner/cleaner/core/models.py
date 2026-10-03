@@ -24,11 +24,15 @@ class Category(str, Enum):
     DEV = "dev"
     INSTALLERS = "installers"
     IOS_BACKUP = "ios_backup"
+    MAIL = "mail"
     SYSTEM_JUNK = "system_junk"
     LARGE = "large"
     DUPLICATE = "duplicate"
     APP = "app"
     LEFTOVER = "leftover"
+    PRIVACY = "privacy"
+    THREAT = "threat"
+    EXTENSION = "extension"
 
 
 @dataclass(frozen=True)
@@ -55,17 +59,23 @@ CATEGORY_INFO: Dict[Category, CategoryInfo] = {
                                       "ملفات ‎.dmg و ‎.pkg في مجلد التنزيلات.", False, "#ec4899"),
     Category.IOS_BACKUP: CategoryInfo("نسخ iPhone/iPad الاحتياطية", "📱",
                                       "نسخ احتياطية قديمة لأجهزة iOS — راجعها قبل الحذف.", False, "#8b5cf6"),
+    Category.MAIL: CategoryInfo("مرفقات البريد", "✉️",
+                                "مرفقات فتحتها من تطبيق Mail ونُسخت محلياً — تبقى في البريد نفسه.", False,
+                                "#0ea5e9"),
     Category.SYSTEM_JUNK: CategoryInfo("ملفات نظام مهملة", "🧩",
                                        "ملفات ‎.DS_Store وملفات ‎._ المخفية.", True, "#64748b"),
     Category.LARGE: CategoryInfo("ملفات كبيرة", "📦", "", False, "#22c55e"),
     Category.DUPLICATE: CategoryInfo("ملفات مكررة", "👯", "", False, "#14b8a6"),
     Category.APP: CategoryInfo("تطبيق", "🧩", "", False, "#6366f1"),
     Category.LEFTOVER: CategoryInfo("بقايا تطبيقات", "🧹", "", False, "#f97316"),
+    Category.PRIVACY: CategoryInfo("بيانات الخصوصية", "🕵️", "", False, "#0ea5e9"),
+    Category.THREAT: CategoryInfo("تهديد محتمل", "🛡", "", False, "#ef4444"),
+    Category.EXTENSION: CategoryInfo("إضافة", "🧩", "", False, "#8b5cf6"),
 }
 
 JUNK_CATEGORIES = [
     Category.CACHE, Category.LOGS, Category.TEMP, Category.TRASH, Category.DEV,
-    Category.INSTALLERS, Category.IOS_BACKUP, Category.SYSTEM_JUNK,
+    Category.INSTALLERS, Category.MAIL, Category.IOS_BACKUP, Category.SYSTEM_JUNK,
 ]
 
 
