@@ -52,6 +52,6 @@ app = BUNDLE(
         "NSRequiresAquaSystemAppearance": False,   # دعم الوضع الداكن
         "NSAppleEventsUsageDescription":
             "يحتاج البرنامج إلى Finder لنقل الملفات إلى سلة المحذوفات وإفراغها.",
-        "NSHumanReadableCopyright": "Open source — Disk Cleaner Pro",
+        "NSHumanReadableCopyright": "© Disk Cleaner Pro. All rights reserved.",
     },
 )

@@ -91,7 +91,7 @@ class SettingsPage(Page):
 
         # ---------------- حول
         c = section(6, "ℹ️", f"{APP_NAME} v{__version__}",
-                    "برنامج مفتوح المصدر مكتوب بلغة Python. ملف الإعدادات:\n"
+                    "© جميع الحقوق محفوظة. ملف الإعدادات:\n"
                     + short_path(s.path()))
         ctk.CTkLabel(c, text="").grid(row=2, column=0, pady=4)
 
