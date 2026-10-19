@@ -4,12 +4,18 @@ Disk Cleaner Pro — منظّف القرص برو
 التشغيل:
     python3 main.py
     python3 main.py --selftest     # اختبار ذاتي سريع
+    python3 main.py --autoclean    # تنظيف تلقائي بدون واجهة (يستخدمه وكيل macOS)
 """
 
 import sys
 
 if sys.version_info < (3, 9):
     sys.exit("يحتاج البرنامج Python 3.9 أو أحدث.")
+
+# وضع التنظيف التلقائي في الخلفية (يشغّله وكيل macOS) — بدون واجهة
+if "--autoclean" in sys.argv:
+    from cleaner.core.autoclean import cli_main
+    sys.exit(cli_main())
 
 try:
     import customtkinter  # noqa: F401

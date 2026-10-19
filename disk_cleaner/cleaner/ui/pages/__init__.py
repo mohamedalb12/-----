@@ -1,5 +1,6 @@
 """صفحات البرنامج بالترتيب الظاهر في الشريط الجانبي: (المفتاح، الأيقونة، الاسم، الصنف، القسم)."""
 
+from .autopilot import AutopilotPage
 from .dashboard import DashboardPage
 from .duplicates import DuplicatesPage
 from .extensions import ExtensionsPage
@@ -18,6 +19,7 @@ from .updater import UpdaterPage
 
 PAGES = [
     ("dashboard", "🏠", "الفحص الذكي", DashboardPage, None),
+    ("autopilot", "🤖", "تنظيف تلقائي", AutopilotPage, "التنظيف"),
     ("junk", "🧹", "مهملات النظام", JunkPage, "التنظيف"),
     ("large", "📦", "الملفات الكبيرة", LargePage, "التنظيف"),
     ("duplicates", "👯", "الملفات المكررة", DuplicatesPage, "التنظيف"),

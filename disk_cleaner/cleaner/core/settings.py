@@ -29,6 +29,15 @@ class Settings:
     total_cleaned: int = 0              # إجمالي المساحة المحرَّرة منذ تثبيت البرنامج
     clean_count: int = 0
     last_smart_scan: float = 0.0
+    # ---- التنظيف التلقائي (Autopilot)
+    auto_enabled: bool = False
+    auto_threshold_mb: int = 2000            # ينظّف عندما يتجاوز الكاش هذا الحجم
+    auto_categories: List[str] = field(default_factory=lambda: ["cache", "logs", "temp"])
+    auto_min_age_days: int = 3               # لا يحذف ملفات عُدّلت خلال هذه المدة
+    auto_interval_hours: int = 6
+    auto_trash_days: int = 30                # 0 = لا تفرغ السلة تلقائياً
+    low_disk_alert_gb: int = 10              # 0 = بدون تنبيه
+    auto_notify: bool = True
 
     @classmethod
     def path(cls) -> str:

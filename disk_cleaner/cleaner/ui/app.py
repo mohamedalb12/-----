@@ -96,6 +96,11 @@ class App(ctk.CTk):
         T.on_appearance_change(lambda: T.apply_tree_style(self), self)
         self.show_page("dashboard")
         self.refresh_disk()
+        try:  # تحديث وكيل التنظيف التلقائي لو تغيّر مكان التطبيق
+            from ..core.autoclean import ensure_agent
+            ensure_agent(self.settings)
+        except Exception:
+            traceback.print_exc()
         self.after(POLL_MS, self._poll)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 

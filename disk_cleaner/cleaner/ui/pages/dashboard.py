@@ -144,8 +144,12 @@ class DashboardPage(Page):
 
     def _update_stats(self):
         s = self.app.settings
-        if s.total_cleaned:
-            text = f"🏆  وفّرت حتى الآن {human_size(s.total_cleaned)} في {s.clean_count:,} عملية تنظيف"
+        from ...core.autoclean import AutoState
+        auto = AutoState.load().total_freed
+        if s.total_cleaned or auto:
+            text = f"🏆  وفّرت حتى الآن {human_size(s.total_cleaned + auto)}"
+            if auto:
+                text += f" (منها {human_size(auto)} بالتنظيف التلقائي)"
         else:
             text = "🚀  نظّف جهازك بضغطة واحدة بعد الفحص الذكي"
         if self.result:

@@ -112,7 +112,14 @@ def run_selftest() -> int:
         assert done and not os.path.exists(d), failed
         return "ok"
 
-    for name, fn in (("protection checks", protection), ("startup items", startup_items),
+    def autoclean_dry():
+        from .core import autoclean
+        from .core.settings import Settings
+        rec = autoclean.run_autoclean(NULL_CONTEXT, Settings(), force=True, dry_run=True)
+        return f"measured={human_size(rec.measured)} would_free={human_size(rec.freed)} " \
+               f"args={autoclean.program_arguments()[-1]}"
+
+    for name, fn in (("autoclean (dry run)", autoclean_dry), ("protection checks", protection), ("startup items", startup_items),
                      ("privacy scan", privacy_scan), ("threat scan", threats),
                      ("extensions", extensions), ("monitor", monitor_sample),
                      ("maintenance tasks", maintenance_list), ("updater", updates),
