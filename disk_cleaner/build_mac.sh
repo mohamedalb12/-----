@@ -19,8 +19,11 @@ echo "==> بيئة بناء معزولة"
 # shellcheck disable=SC1091
 source .build-venv/bin/activate
 python -m pip install --quiet --upgrade pip
-python -m pip install --quiet -r requirements.txt pyinstaller
+python -m pip install --quiet -r requirements.txt pyinstaller "cython>=3.0" setuptools
 python -c "import tkinter; print('Tk', tkinter.TkVersion)"
+
+echo "==> حماية الكود: تحويله إلى كود آلة"
+python tools/compile_native.py
 
 echo "==> بناء التطبيق (v$VERSION, $ARCH)"
 rm -rf build "dist/$APP_NAME" "dist/$APP_NAME.app" dist/dmg
@@ -38,6 +41,11 @@ DMG="dist/DiskCleanerPro-$VERSION-$ARCH.dmg"
 rm -f "$DMG"
 hdiutil create -volname "$APP_NAME" -srcfolder dist/dmg -ov -format UDZO "$DMG"
 rm -rf dist/dmg
+
+echo "==> التحقق من عدم وجود كود مقروء داخل التطبيق"
+if find "$APP" -name "*.py" -path "*cleaner*" ! -name "__init__.py" | grep -q .; then
+  echo "✘ وُجدت ملفات Python مقروءة داخل التطبيق!"; exit 1
+fi
 
 echo ""
 echo "✅ تم: $APP"

@@ -33,6 +33,17 @@ def run_selftest() -> int:
     failures = []
     print(f"Python {sys.version.split()[0]} on {sys.platform}", flush=True)
 
+    def native_check():
+        """هل الكود محمي (مُجمّع إلى كود آلة)؟ إلزامي في التطبيق المبني."""
+        from .core import walker
+        from .ui import app as ui_app
+        native = all(str(getattr(m, "__file__", "")).endswith((".so", ".pyd")) for m in (walker, ui_app))
+        if getattr(sys, "frozen", False) and os.environ.get("REQUIRE_NATIVE") == "1" and not native:
+            raise AssertionError("الكود غير محمي: الوحدات ليست مُجمّعة")
+        return "native machine code ✅" if native else "pure Python (source run)"
+
+    _step("code protection", native_check, failures)
+
     _step("disk usage", lambda: [human_size(x) for x in actions.disk_usage("/")], failures)
     _step("system info", lambda: (actions.computer_name(), actions.os_description(),
                                   "FDA" if actions.has_full_disk_access() else "no FDA"), failures)

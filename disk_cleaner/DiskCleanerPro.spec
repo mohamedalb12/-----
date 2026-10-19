@@ -15,10 +15,33 @@ a = Analysis(
     ["main.py"],
     pathex=[SPECPATH],
     datas=collect_data_files("customtkinter") + [(os.path.join(SPECPATH, "assets"), "assets")],
-    hiddenimports=["PIL._tkinter_finder", "send2trash"],
+    hiddenimports=["PIL._tkinter_finder", "send2trash", "psutil", "certifi"],
     excludes=["numpy", "matplotlib", "pytest", "IPython"],
     noarchive=False,
 )
+# ---------------------------------------------------------------------------
+# حماية الكود: إن وُجد مجلد build_native (من tools/compile_native.py) نستبدل
+# ملفات Python المقروءة بنسخها المُجمّعة إلى كود آلة (.so).
+# التحليل يتم على الكود الأصلي أولاً حتى يكتشف PyInstaller كل المكتبات المطلوبة.
+# ---------------------------------------------------------------------------
+NATIVE_DIR = os.path.join(SPECPATH, "build_native")
+if os.path.isdir(NATIVE_DIR):
+    compiled = {}
+    for root, _dirs, files in os.walk(NATIVE_DIR):
+        for f in files:
+            if f.endswith((".so", ".pyd")):
+                rel = os.path.relpath(os.path.join(root, f), NATIVE_DIR)
+                module = rel.split(".")[0].replace(os.sep, ".")
+                compiled[module] = (rel, os.path.join(root, f))
+    before = len(a.pure)
+    a.pure = [entry for entry in a.pure if entry[0] not in compiled]
+    a.binaries += [(rel, path, "BINARY") for rel, path in compiled.values()]
+    leftover = [e[0] for e in a.pure if e[0].startswith("cleaner.") and not e[0].endswith("__init__")
+                and e[0] not in ("cleaner.core", "cleaner.ui", "cleaner.ui.pages")]
+    if leftover:
+        raise SystemExit(f"وحدات غير محمية: {leftover}")
+    print(f"🔒 حماية الكود: {len(compiled)} وحدة مُجمّعة (أُزيلت {before - len(a.pure)} وحدة مقروءة)")
+
 pyz = PYZ(a.pure)
 
 exe = EXE(

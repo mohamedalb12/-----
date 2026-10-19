@@ -76,6 +76,10 @@ cd disk_cleaner
 
 **البناء التلقائي:** عند كل تحديث للكود، يبني GitHub Actions التطبيق على أجهزة ماك حقيقية (Apple Silicon وIntel)، ويشغّل عليه اختباراً ذاتياً، ثم ينشر ملفات DMG في صفحة Releases. الإعدادات في `.github/workflows/build-macos.yml`.
 
+**حماية الكود:** أثناء البناء يحوّل `tools/compile_native.py` كل وحدات البرنامج إلى كود آلة
+(Cython → ‎.so) فلا يحتوي التطبيق على أي كود Python قابل للقراءة. البناء يفشل تلقائياً لو بقي أي
+ملف غير محمي، والاختبار الذاتي على GitHub يتحقق من ذلك (`REQUIRE_NATIVE=1`).
+
 **التنظيف التلقائي في الخلفية:** عند تفعيله يُثبَّت وكيل macOS في
 `~/Library/LaunchAgents/com.mohamedalb12.diskcleanerpro.autoclean.plist` يشغّل
 `"Disk Cleaner Pro" --autoclean` كل عدة ساعات. إيقافه من البرنامج يحذف الوكيل. سجله في
@@ -123,6 +127,7 @@ disk_cleaner/
 │       └── pages/           صفحات البرنامج
 ├── assets/                  الأيقونة
 ├── tools/make_icon.py       رسم الأيقونة
+├── tools/compile_native.py  تحويل الكود إلى كود آلة لحمايته
 ├── DiskCleanerPro.spec      إعدادات PyInstaller
 └── build_mac.sh             سكربت البناء
 ```

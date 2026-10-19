@@ -38,6 +38,8 @@ jobs:
 
       - name: Self-test the built app on real macOS
         timeout-minutes: 10
+        env:
+          REQUIRE_NATIVE: "1"
         run: '"dist/Disk Cleaner Pro.app/Contents/MacOS/Disk Cleaner Pro" --selftest'
 
       - uses: actions/upload-artifact@v4
